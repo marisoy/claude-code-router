@@ -27,6 +27,10 @@ export class ReasoningTransformer implements Transformer {
       };
       request.enable_thinking = true;
     }
+    // Strip the entire reasoning object — it's Anthropic-specific
+    // (effort, max_tokens, enabled) and not understood by non-Anthropic providers.
+    // The thinking field above is the canonical field the llms library expects.
+    delete (request as any).reasoning;
     return request;
   }
 
@@ -93,7 +97,6 @@ export class ReasoningTransformer implements Transformer {
             if (line.startsWith("data: ") && line.trim() !== "data: [DONE]") {
               try {
                 const data = JSON.parse(line.slice(6));
-                console.log(JSON.stringify(data))
 
                 // Extract reasoning_content from delta
                 if (data.choices?.[0]?.delta?.reasoning_content) {
